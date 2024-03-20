@@ -2,24 +2,171 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>blog</title>
-        <link>https://Multipleriver.github.io/</link>
+        <link>https://qqice.github.io/</link>
         <description>Recent content on blog</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
-        <lastBuildDate>Sun, 28 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://Multipleriver.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Thu, 21 Mar 2024 02:08:03 +0800</lastBuildDate><atom:link href="https://qqice.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>构建AXI Stream与rootfs为Ubuntu的Petalinux进行协作实例（通用版）</title>
+        <link>https://qqice.github.io/p/%E6%9E%84%E5%BB%BAaxi-stream%E4%B8%8Erootfs%E4%B8%BAubuntu%E7%9A%84petalinux%E8%BF%9B%E8%A1%8C%E5%8D%8F%E4%BD%9C%E5%AE%9E%E4%BE%8B%E9%80%9A%E7%94%A8%E7%89%88/</link>
+        <pubDate>Thu, 21 Mar 2024 02:08:03 +0800</pubDate>
+        
+        <guid>https://qqice.github.io/p/%E6%9E%84%E5%BB%BAaxi-stream%E4%B8%8Erootfs%E4%B8%BAubuntu%E7%9A%84petalinux%E8%BF%9B%E8%A1%8C%E5%8D%8F%E4%BD%9C%E5%AE%9E%E4%BE%8B%E9%80%9A%E7%94%A8%E7%89%88/</guid>
+        <description>&lt;img src="https://multipleriver-img.oss-cn-nanjing.aliyuncs.com/img/yank-note-picgo-img-20240216170449.png" alt="Featured image of post 构建AXI Stream与rootfs为Ubuntu的Petalinux进行协作实例（通用版）" /&gt;&lt;h1 id=&#34;构建axi-stream与rootfs为ubuntu的petalinux进行协作实例通用版&#34;&gt;构建AXI Stream与rootfs为Ubuntu的Petalinux进行协作实例（通用版）&lt;/h1&gt;
+&lt;h3 id=&#34;第一步-vitis-hls创建ip核并在vivado中生成xsa&#34;&gt;第一步 Vitis HLS创建IP核，并在Vivado中生成XSA&lt;/h3&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://www.youtube.com/watch?v=3So1DPe2_4s&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;VIVADO HLS Training AXI Stream interface #07 - YouTube&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://github.com/smosanu/axi_stream_tutorial&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://github.com/smosanu/axi_stream_tutorial&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;注意事项：&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://github.com/bperez77/xilinx_axidma/issues/18#issuecomment-357294618&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://github.com/bperez77/xilinx_axidma/issues/18#issuecomment-357294618&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;AXI Lite在裸机程序中可用，在操作系统中不可用。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;所以需要添加&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;#pragma HLS INTERFACE ap_ctrl_none port=return&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;将ap_ctrl删除，仅使用AXI Stream&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://blog.csdn.net/m0_37545528/article/details/106300726&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Zynq linux加载axi_dma驱动报错 axidma: axidma_dma.c: axidma_request_channels: 651: Unable to get slave chan-CSDN博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;不要忘记连接AXI DMA的中断信号！&lt;/p&gt;
+&lt;p&gt;2024/2/11更新：导致axidma驱动在ZYNQMP上工作不正常的原因已找到，是内核中自带的XilinxDMA驱动错误的接管了中断信号，导致User Space一直接收不到中断信号继而超时。&lt;/p&gt;
+&lt;h3 id=&#34;第二步-构建petalinux&#34;&gt;第二步 构建Petalinux&lt;/h3&gt;
+&lt;h4 id=&#34;20-配置内核&#34;&gt;2.0 配置内核&lt;/h4&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://blog.csdn.net/aizaiyueye/article/details/125032967&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;【精选】ZCU106开发（2）在Linux系统层上PL-PS通过AXI-DMA传输数据详细步骤及注意事项_zcu106 dma_aizaiyueye的博客-CSDN博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Kernel Features&amp;mdash;-&amp;gt;Maximum count of the CMA areas 无需配置&lt;/p&gt;
+&lt;p&gt;dma-channel@后面的地址需要根据pl.dtsi修改&lt;/p&gt;
+&lt;p&gt;pl.dtsi和pcw.dtsi在一个目录里&lt;/p&gt;
+&lt;h4 id=&#34;21-编译驱动&#34;&gt;2.1 编译驱动&lt;/h4&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://github.com/bperez77/xilinx_axidma/pull/139&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Enable Linux 5.4 support by andrewvoznytsa · Pull Request #139 · bperez77/xilinx_axidma (github.com)&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;添加5.x内核驱动(也可以直接用我们的GitHub仓库)&lt;/p&gt;
+&lt;p&gt;编译完成后驱动文件在&lt;code&gt;\build\tmp\sysroots-components\zynq_generic\xilinx-axidma\lib\modules\5.15.19-xilinx-v2022.1\extra&lt;/code&gt;里&lt;/p&gt;
+&lt;p&gt;每次petalinux-build后,需要重新复制新的驱动,否则不兼容&lt;/p&gt;
+&lt;p&gt;CMA大小可以通过&lt;code&gt;\project-spec\configs\config&lt;/code&gt;中修改bootargs实现&lt;/p&gt;
+&lt;h4 id=&#34;22-构建ubuntu根文件系统&#34;&gt;2.2 构建Ubuntu根文件系统&lt;/h4&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://blog.csdn.net/Markus_xu/article/details/117020452&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;【精选】制作适用于ZYNQ（ARM平台）的Ubuntu系统_xczu跑ubuntu系统_MarkusXu的博客-CSDN博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Certificate verification failed: The certificate is NOT trusted. The certificate chain uses expired certificate.  Could not handshake: Error in the certificate verification. [IP: 2402:f000:1:400::2 443]&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# https改为http
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;$ vim /etc/apt/sources.list
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# 执行apt更新和重新安装证书
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;$ sudo apt-get update
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;$ sudo apt-get install --reinstall ca-certificates
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# http改为https
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;$ vim /etc/apt/sources.list
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;ifupdown resolvconf&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;http://ports.ubuntu.com/ubuntu-ports/pool/main/i/ifupdown/ifupdown_0.8.35ubuntu1_armhf.deb&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;http://ports.ubuntu.com/ubuntu-ports/pool/main/i/ifupdown/ifupdown_0.8.35ubuntu1_armhf.deb&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;http://ports.ubuntu.com/ubuntu-ports/pool/main/r/resolvconf/resolvconf_1.78ubuntu7_all.deb&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;http://ports.ubuntu.com/ubuntu-ports/pool/main/r/resolvconf/resolvconf_1.78ubuntu7_all.deb&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;chroot: failed to run command ‘/bin/bash’: Exec format error&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo update-binfmts --enable qemu-arm
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://blog.csdn.net/zc21463071/article/details/106751361&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;(31条消息) 打包开发板根文件系统，并制作成img镜像_歌舞丶升平的博客-CSDN博客&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;dns解析失败&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;nameserver 8.8.8.8
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;code&gt;/etc/resolvconf/resolv.conf.d/base&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;nameserver 8.8.4.4
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;code&gt;/etc/resolvconf/resolv.conf.d/head&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;创建swap&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo dd if=/dev/zero of=/opt/swap bs=1M count=1024
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo mkswap /opt/swap
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo swapon /opt/swap
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo vim /etc/fstab
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/opt/swap         swap          swap      defaults                             0      0
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;gpio permission denied&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-gdscript3&#34; data-lang=&#34;gdscript3&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;groupadd&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;usermod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;aG&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;myusername&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;su&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;myusername&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chgrp&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;export&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chgrp&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;unexport&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chmod&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;775&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;export&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chmod&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;775&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;unexport&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chgrp&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;HR&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio960&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;sudo&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;chmod&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;R&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;775&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sys&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gpio960&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;制卡时，如果需要多分区，则启动分区应当为FAT16而非FAT32&lt;/p&gt;
+&lt;h3 id=&#34;第三步-zynq板卡启动镜像&#34;&gt;第三步 Zynq板卡启动镜像&lt;/h3&gt;
+&lt;p&gt;启动完成后使用&lt;code&gt;sudo insmod xilinx-axidma.ko&lt;/code&gt;加载驱动到内核&lt;/p&gt;
+&lt;p&gt;使用&lt;code&gt;dmesg | grep dma&lt;/code&gt;查看驱动是否加载成功，是否识别到ip核中的通道&lt;/p&gt;
+&lt;p&gt;正确加载驱动后再编写程序测试ip核功能是否正常&lt;/p&gt;
+</description>
+        </item>
+        <item>
         <title>归档</title>
-        <link>https://Multipleriver.github.io/archives/</link>
+        <link>https://qqice.github.io/archives/</link>
         <pubDate>Sun, 28 May 2023 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/archives/</guid>
+        <guid>https://qqice.github.io/archives/</guid>
         <description></description>
         </item>
         <item>
         <title>测试页面</title>
-        <link>https://Multipleriver.github.io/p/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2/</link>
+        <link>https://qqice.github.io/p/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2/</link>
         <pubDate>Sat, 20 May 2023 12:17:03 +0800</pubDate>
         
-        <guid>https://Multipleriver.github.io/p/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2/</guid>
+        <guid>https://qqice.github.io/p/%E6%B5%8B%E8%AF%95%E9%A1%B5%E9%9D%A2/</guid>
         <description>&lt;img src="https://multipleriver-img.oss-cn-nanjing.aliyuncs.com/img/yank-note-picgo-img-20240216170449.png" alt="Featured image of post 测试页面" /&gt;&lt;h1 id=&#34;yank-note-特色功能使用说明&#34;&gt;Yank-Note 特色功能使用说明&lt;/h1&gt;
 &lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;./FEATURES.md&#34; &gt;English&lt;/a&gt; | 中文&lt;/p&gt;
 &lt;p&gt;[toc]{type: &amp;ldquo;ol&amp;rdquo;, level: [2]}&lt;/p&gt;
@@ -192,7 +339,7 @@ The HTML specification is maintained by the W3C.&lt;/li&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;h3 id=&#34;图片增强&#34;&gt;图片增强&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&#34;https://Multipleriver.github.io/mas_en.svg?.inline&#34;
+&lt;p&gt;&lt;img src=&#34;https://qqice.github.io/mas_en.svg?.inline&#34;
 	
 	
 	
@@ -202,7 +349,7 @@ The HTML specification is maintained by the W3C.&lt;/li&gt;
 &gt;&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;一个段落下如果只有一个图片元素，默认会渲染成块元素并居中。如果要强制显示为行内元素，可以在图片链接参数后面追加 &lt;code&gt;.inline&lt;/code&gt; 如上图所示。&lt;/li&gt;
-&lt;li&gt;如果要给图片添加白色背景优化展示效果（针对某些透明图片）,可以在图片链接参数后面追加 &lt;code&gt;.bgw&lt;/code&gt; 如：&lt;img src=&#34;https://Multipleriver.github.io/mas_en.svg?.bgw&#34;
+&lt;li&gt;如果要给图片添加白色背景优化展示效果（针对某些透明图片）,可以在图片链接参数后面追加 &lt;code&gt;.bgw&lt;/code&gt; 如：&lt;img src=&#34;https://qqice.github.io/mas_en.svg?.bgw&#34;
 	
 	
 	
@@ -1226,35 +1373,35 @@ return res
         </item>
         <item>
         <title>test</title>
-        <link>https://Multipleriver.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</link>
+        <link>https://qqice.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</link>
         <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</guid>
+        <guid>https://qqice.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</guid>
         <description>&lt;img src="https://multipleriver-img.oss-cn-nanjing.aliyuncs.com/img/yank-note-picgo-img-20240217222903.png" alt="Featured image of post test" /&gt;</description>
         </item>
         <item>
         <title>关于</title>
-        <link>https://Multipleriver.github.io/%E5%85%B3%E4%BA%8E/</link>
+        <link>https://qqice.github.io/%E5%85%B3%E4%BA%8E/</link>
         <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/%E5%85%B3%E4%BA%8E/</guid>
+        <guid>https://qqice.github.io/%E5%85%B3%E4%BA%8E/</guid>
         <description>&lt;p&gt;This is a test page for i18n support.&lt;/p&gt;
 </description>
         </item>
         <item>
         <title>搜索</title>
-        <link>https://Multipleriver.github.io/search/</link>
+        <link>https://qqice.github.io/search/</link>
         <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/search/</guid>
+        <guid>https://qqice.github.io/search/</guid>
         <description></description>
         </item>
         <item>
         <title>友链</title>
-        <link>https://Multipleriver.github.io/%E5%8F%8B%E9%93%BE/</link>
+        <link>https://qqice.github.io/%E5%8F%8B%E9%93%BE/</link>
         <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/%E5%8F%8B%E9%93%BE/</guid>
+        <guid>https://qqice.github.io/%E5%8F%8B%E9%93%BE/</guid>
         <description></description>
         </item>
         

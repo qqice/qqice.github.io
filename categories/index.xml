@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Categories on blog</title>
-        <link>https://Multipleriver.github.io/categories/</link>
+        <link>https://qqice.github.io/categories/</link>
         <description>Recent content in Categories on blog</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
-        <lastBuildDate>Sat, 20 May 2023 12:17:03 +0800</lastBuildDate><atom:link href="https://Multipleriver.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Thu, 21 Mar 2024 02:08:03 +0800</lastBuildDate><atom:link href="https://qqice.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>test</title>
-        <link>https://Multipleriver.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</link>
+        <link>https://qqice.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</link>
         <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
         
-        <guid>https://Multipleriver.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</guid>
+        <guid>https://qqice.github.io/categories/%E8%AF%BE%E7%A8%8B%E6%80%9D%E8%80%83/</guid>
         <description>&lt;img src="https://multipleriver-img.oss-cn-nanjing.aliyuncs.com/img/yank-note-picgo-img-20240217222903.png" alt="Featured image of post test" /&gt;</description>
         </item>
         
